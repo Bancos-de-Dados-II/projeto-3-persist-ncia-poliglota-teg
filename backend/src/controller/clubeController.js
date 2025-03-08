@@ -1,4 +1,5 @@
 import Clube from "../model/clube.js";
+import client from "../database/redis.js";
 
 function convertToUUID(hexString) {
   let paddedHex = hexString.padEnd(32, '0');
