@@ -1,3 +1,4 @@
+import { type } from "os";
 import mongoose from "../database/mongoose.js";
 import {randomUUID} from "crypto";
 
@@ -55,6 +56,10 @@ const clubeShema = new Schema({
             type: [Number],
             required: true
         }
+    },
+    visualizacoes:{
+        type: Number,
+        default: 0
     }
 })
 

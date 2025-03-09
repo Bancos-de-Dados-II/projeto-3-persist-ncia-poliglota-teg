@@ -16,10 +16,31 @@ function convertToUUID(hexString) {
 export async function findByIdClub(req, res){
     try {
       const id = req.params.id;
+      const clubes = await client.get('clubes');
+      if(clubes){
+        const objClubes = JSON.parse(clubes);
+        const cache = objClubes.find(clube => clube._id === id);
+
+        if(cache){
+          res.status(200).json(cache);
+          console.log("Retornando do Redis");
+          return;
+        }
+      }
       const clube = await Clube.findById(id);
+      if(!clube){
+        res.status(404).json({ message: "Error clube não encontrado" });
+        return;
+      }
+      const updatedClubes = clubes ? [...JSON.parse(clubes), clube] : [clube];
+      await client.set('clubes', JSON.stringify(updatedClubes), {'EX': 3600});
+
       res.status(200).json(clube);
+      console.log("Retornando do MongoDB");
+
     } catch (error) {
-      res.status(404).json({message: "Error: clube não encontrado"});
+      console.log(error);
+      res.status(500).json({ message: "Internal Server Error" });
     }
 }
 
