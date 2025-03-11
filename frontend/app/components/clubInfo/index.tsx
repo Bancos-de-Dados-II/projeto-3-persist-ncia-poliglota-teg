@@ -1,9 +1,10 @@
-import {  useRef } from "react";
+import {  useEffect, useRef, useState } from "react";
 import { useNavigate, type LinksFunction } from "react-router";
 import { Button } from "@mui/material";
 
 import styles from "./styles.css?url";
 import type { Clube } from "~/types";
+import { getClubById } from "~/api/custom";
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }];
 
 const fallbackImg = "/football-club.png"
@@ -14,7 +15,30 @@ interface ClubInfoProps {
 
 export default function ClubInfo({ club }: ClubInfoProps) {
   const navigate = useNavigate();
+  const [clubUS, setClubUS] = useState<Clube>(club);
+  const clubId = club.id;
   const imgRef = useRef<HTMLImageElement>(null);
+  const fetchedRef = useRef(false);
+
+  useEffect(() => {
+    async function fetchClub() {
+      if (!clubId || fetchedRef.current) return;
+
+      fetchedRef.current = true;
+
+      try {
+        const data = await getClubById(clubId);
+
+        if(!data) return
+
+        setClubUS(data);
+      } catch (error) {
+        console.error("Erro ao buscar clube:", error);
+      }
+    }
+
+    fetchClub();
+  }, [clubId]);
 
   function handleImageError() {
     if (imgRef.current) imgRef.current.src = fallbackImg;
@@ -33,7 +57,7 @@ export default function ClubInfo({ club }: ClubInfoProps) {
       <div className="club-logo">
         <img ref={imgRef} className="club-logo-img" src={club.imageurl || fallbackImg} onError={handleImageError} alt={club.nome} />
       </div>
-        <ClubData club={club} />
+        <ClubData club={clubUS} />
     </div>
     </div>
   );
@@ -47,6 +71,7 @@ function ClubData({club}: { club: Clube}) {
     { label: "Liga", value: club.liga },
     { label: "Local", value: club.nomeLocalizacao },
     { label: "País", value: club.pais },
+    { label: "Visualizações", value: club.visualizacoes }
   ];
 
   return (
