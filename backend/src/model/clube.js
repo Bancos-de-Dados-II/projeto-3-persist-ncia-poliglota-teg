@@ -55,6 +55,10 @@ const clubeShema = new Schema({
             type: [Number],
             required: true
         }
+    },
+    visualizacoes:{
+        type: Number,
+        default: 0
     }
 })
 

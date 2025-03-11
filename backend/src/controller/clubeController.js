@@ -1,4 +1,5 @@
 import Clube from "../model/clube.js";
+import client from "../database/redis.js";
 
 function convertToUUID(hexString) {
   let paddedHex = hexString.padEnd(32, '0');
@@ -15,10 +16,37 @@ function convertToUUID(hexString) {
 export async function findByIdClub(req, res){
     try {
       const id = req.params.id;
+
       const clube = await Clube.findById(id);
+      if(!clube){
+        res.status(404).json({ message: "Error clube não encontrado" });
+        return;
+      }
+     clube.visualizacoes +=1;
+     await clube.save();
+      const clubes = await client.get('clubes');
+      if(clubes){
+        const objClubes = JSON.parse(clubes);
+        const cache = objClubes.find(clube => clube._id === id);
+
+        if(cache){
+          const index = objClubes.findIndex(clube => clube._id === id);
+          objClubes[index].visualizacoes +=1;
+          await client.set('clubes', JSON.stringify(objClubes), {'EX': 86400});
+          res.status(200).json(objClubes[index]);
+          console.log("Retornando do Redis");
+          return;
+        }
+      }
+      const updatedClubes = clubes ? [...JSON.parse(clubes), clube] : [clube];
+      await client.set('clubes', JSON.stringify(updatedClubes), {'EX': 86400});
+
       res.status(200).json(clube);
+      console.log("Retornando do MongoDB");
+
     } catch (error) {
-      res.status(404).json({message: "Error: clube não encontrado"});
+      console.log(error);
+      res.status(500).json({ message: "Internal Server Error" });
     }
 }
 
