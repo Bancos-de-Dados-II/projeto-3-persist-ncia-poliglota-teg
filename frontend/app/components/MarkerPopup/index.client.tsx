@@ -19,6 +19,11 @@ const MarkerPopup = forwardRef<any | null, MarkerCompProps>(
 
     useImperativeHandle(ref, () => markerRef.current);
 
+    if (!position || (Array.isArray(position) && position.some((val) => val === undefined))) {
+      console.error("Erro: posição inválida no MarkerPopup", position);
+      return null; // Evita renderizar o marcador inválido
+    }
+
     return (
       <Marker
         ref={markerRef}

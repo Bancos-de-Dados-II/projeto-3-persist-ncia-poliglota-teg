@@ -30,8 +30,9 @@ export type Clube = BaseClube & {
   imageurl: string
   geocode: [number, number];
   nomeLocalizacao: string;
-  pais: string
-  rivais: string[]
+  pais: string;
+  rivais: string[];
+  visualizacoes: number;
 };
 
 export type ClubeInput = Omit<Clube, 'icon' > & {
